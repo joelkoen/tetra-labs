@@ -1,0 +1,9 @@
+:8000 {
+	reverse_proxy /api/* https://tetr.io {
+		header_up Host {upstream_hostport}
+	}
+
+	file_server {
+		root dist
+	}
+}
