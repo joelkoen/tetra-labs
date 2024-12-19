@@ -55,11 +55,9 @@ async fn main() -> Result<()> {
                         "js/tetrio.js" => (fs::read_to_string(path)?
                             .replace("if(_.domain)", "if(false)") // disable domain hijack check
                             .replace("sentry_enabled:!0", "sentry_enabled:false")
-                            .replace(r#"(kt[r(0,0,0,2687,")#]6)")"#, "")
-                            + "(()=>{"
-                            + include_str!("append.js")
-                            + "})();")
-                            .into(),
+                            .replace(r#"(kt[r(0,0,0,2687,")#]6)")"#, "") // disable debugger trap
+                            + include_str!("append.js"))
+                        .into(),
 
                         _ => fs::read(path)?,
                     };
