@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate log;
 
-use std::{fs, path::Path};
+use std::fs;
 
 // use actix_files::Files;
 // use actix_web::{
@@ -25,7 +25,7 @@ struct Cli {
 #[derive(Subcommand, Debug, Clone)]
 enum Command {
     Build,
-    Patch,
+    Patch { include_multiplayer: Option<bool> },
 }
 
 #[tokio::main]
@@ -38,8 +38,9 @@ async fn main() -> Result<()> {
             build::fetch_raw().await?;
             build::split_bundle()?;
         }
-        Command::Patch => {
-            // fs::remove_dir_all("dist")?;
+        Command::Patch {
+            include_multiplayer,
+        } => {
             for res in glob("build/source/**/*")? {
                 let path = res?;
                 let path_name = path
@@ -56,11 +57,13 @@ async fn main() -> Result<()> {
                             .replace("/bootstrap.js", "/js/tetrio.js")
                             .into(),
 
-                        "js/tetrio.js" => (build::join_bundle()?
-                            .replace("if(_.domain)", "if(false)") // disable domain hijack check
-                            .replace("sentry_enabled:!0", "sentry_enabled:false")
-                            + include_str!("append.js"))
-                        .into(),
+                        "js/tetrio.js" => {
+                            (build::join_bundle(include_multiplayer.unwrap_or(true))?
+                                .replace("if(_.domain)", "if(false)") // disable domain hijack check
+                                .replace("sentry_enabled:!0", "sentry_enabled:false")
+                                + include_str!("append.js"))
+                            .into()
+                        }
 
                         "css/tetrio.css" => (fs::read_to_string(path)?
                             .replace("SigliaTripDisappear 5s 10s", "SigliaTripDisappear 2s 2s"))

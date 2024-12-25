@@ -357,12 +357,13 @@
 /res/skins/board/frosty2023/board.png
 /res/skins/board/frosty2023/grid.png
 /res/skins/board/frosty2023/queue.png
-/res/skins/board/generic/board.png?v=3
+/res/skins/board/generic/board.png
 /res/skins/board/generic/grid.png
 /res/skins/board/generic/queue.png
 /res/skins/board/zenith/frosty/base.png
 /res/skins/ghost/tetrio.png
 /res/skins/minos/frosty2023.png
+/res/skins/minos/tetrio.png
 /res/snowball-icon.png
 /res/social_offline.png
 /res/solo.svg

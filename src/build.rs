@@ -1,8 +1,4 @@
-use std::{
-    fs::{self, File},
-    io,
-    path::Path,
-};
+use std::{fs, io, path::Path};
 
 use anyhow::Result;
 use reqwest::ClientBuilder;
@@ -60,14 +56,19 @@ pub fn split_bundle() -> Result<()> {
     Ok(())
 }
 
-pub fn join_bundle() -> Result<String> {
+pub fn join_bundle(include_multiplayer: bool) -> Result<String> {
     let mut bundle = String::new();
     bundle += &fs::read_to_string("build/lib.js")?;
     bundle += &fs::read_to_string("build/const.js")?;
 
-    let multiplayer = fs::read_to_string("build/multiplayer.js")?;
-    bundle += &fs::read_to_string("build/main.js")?
-        .replace(MULTIPLAYER_TOKEN, &format!(", {multiplayer}"));
+    let main = fs::read_to_string("build/main.js")?;
+    let main = if include_multiplayer {
+        let multiplayer = fs::read_to_string("build/multiplayer.js")?;
+        main.replace(MULTIPLAYER_TOKEN, &format!(", {multiplayer}"))
+    } else {
+        main
+    };
+    bundle += &main;
 
     Ok(bundle)
 }
