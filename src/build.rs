@@ -4,6 +4,7 @@ use anyhow::Result;
 use reqwest::ClientBuilder;
 
 const MULTIPLAYER_TOKEN: &str = "/* multiplayer.js code */";
+const MULTIPLAYER_CALL: &str = "ge.init(),";
 
 pub async fn fetch_raw() -> Result<()> {
     let client = ClientBuilder::new()
@@ -47,9 +48,10 @@ pub fn split_bundle() -> Result<()> {
     write_opt("build/lib.js", lines[1])?;
     write_opt("build/const.js", lines[2])?;
 
-    let (main0, x) = lines[3].split_once("ge.init(),").unwrap();
+    let (main0, x) = lines[3].split_once(MULTIPLAYER_CALL).unwrap();
     let (multiplayer, main1) = x.split_once("class ot{").unwrap();
     let main = format!("{main0}ge.init() {MULTIPLAYER_TOKEN}; class ot{{{main1}");
+    let multiplayer = format!("{MULTIPLAYER_CALL} {multiplayer}");
     write_opt("build/main.js", main)?;
     write_opt("build/multiplayer.js", multiplayer)?;
 
@@ -64,7 +66,7 @@ pub fn join_bundle(include_multiplayer: bool) -> Result<String> {
     let main = fs::read_to_string("build/main.js")?;
     let main = if include_multiplayer {
         let multiplayer = fs::read_to_string("build/multiplayer.js")?;
-        main.replace(MULTIPLAYER_TOKEN, &format!(", {multiplayer}"))
+        main.replace(MULTIPLAYER_TOKEN, &format!("; {}", &multiplayer))
     } else {
         main
     };
