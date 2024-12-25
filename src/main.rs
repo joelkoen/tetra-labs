@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate log;
 
-use std::fs;
+use std::{fs, path::Path};
 
 // use actix_files::Files;
 // use actix_web::{
@@ -14,7 +14,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use glob::glob;
 
-mod fetch;
+mod build;
 
 #[derive(Parser)]
 struct Cli {
@@ -24,9 +24,8 @@ struct Cli {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Command {
-    Fetch,
+    Build,
     Patch,
-    Serve,
 }
 
 #[tokio::main]
@@ -35,14 +34,19 @@ async fn main() -> Result<()> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     match cli.command {
-        Command::Fetch => {
-            fetch::run().await?;
+        Command::Build => {
+            build::fetch_raw().await?;
+            build::split_bundle()?;
         }
         Command::Patch => {
             // fs::remove_dir_all("dist")?;
-            for res in glob("raw/**/*")? {
+            for res in glob("build/source/**/*")? {
                 let path = res?;
-                let path_name = path.strip_prefix("raw/").unwrap().to_str().unwrap();
+                let path_name = path
+                    .strip_prefix("build/source/")
+                    .unwrap()
+                    .to_str()
+                    .unwrap();
                 let path_out = format!("dist/{path_name}");
                 dbg!(&path_out);
                 let meta = fs::metadata(&path)?;
@@ -52,7 +56,7 @@ async fn main() -> Result<()> {
                             .replace("/bootstrap.js", "/js/tetrio.js")
                             .into(),
 
-                        "js/tetrio.js" => (fs::read_to_string(path)?
+                        "js/tetrio.js" => (build::join_bundle()?
                             .replace("if(_.domain)", "if(false)") // disable domain hijack check
                             .replace("sentry_enabled:!0", "sentry_enabled:false")
                             + include_str!("append.js"))
@@ -69,16 +73,6 @@ async fn main() -> Result<()> {
                     fs::create_dir_all(path_out)?;
                 }
             }
-        }
-        Command::Serve => {
-            // HttpServer::new(|| {
-            //     App::new()
-            //         .service(Files::new("/", "dist").index_file("index.html"))
-            //         .wrap(from_fn(middleware))
-            // })
-            // .bind(("127.0.0.1", 8000))?
-            // .run()
-            // .await?;
         }
     }
 
