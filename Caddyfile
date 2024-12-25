@@ -1,4 +1,6 @@
 :8000 {
+	header Cache-Control "max-age=0"
+
 	reverse_proxy /api/* https://tetr.io {
 		header_up Host {upstream_hostport}
 	}

@@ -55,9 +55,12 @@ async fn main() -> Result<()> {
                         "js/tetrio.js" => (fs::read_to_string(path)?
                             .replace("if(_.domain)", "if(false)") // disable domain hijack check
                             .replace("sentry_enabled:!0", "sentry_enabled:false")
-                            .replace(r#"hTvPS:function(e,t){return e(t)}"#, "") // disable debugger trap
                             + include_str!("append.js"))
                         .into(),
+
+                        "css/tetrio.css" => (fs::read_to_string(path)?
+                            .replace("SigliaTripDisappear 5s 10s", "SigliaTripDisappear 2s 2s"))
+                        .into_bytes(),
 
                         _ => fs::read(path)?,
                     };
