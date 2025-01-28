@@ -4,6 +4,9 @@
 	reverse_proxy /api/* https://tetr.io {
 		header_up Host {upstream_hostport}
 	}
+	reverse_proxy /res/* https://tetr.io {
+		header_up Host {upstream_hostport}
+	}
 
 	file_server {
 		root dist
